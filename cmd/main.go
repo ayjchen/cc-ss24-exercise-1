@@ -187,7 +187,6 @@ func findAllBooks(coll *mongo.Collection) []map[string]interface{} {
 }
 
 func addBook(client *mongo.Client, coll *mongo.Collection, book map[string]interface{}) {
-	// cursor, err := coll.Find(context.TODO(), book)
 
 	new_book := BookStore{}
 	_, ok := book["isbn"]
@@ -218,14 +217,19 @@ func addBook(client *mongo.Client, coll *mongo.Collection, book map[string]inter
 }
 
 func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]interface{}) interface{} {
-	// cursor, err := coll.Find(context.TODO(), book)
-	filter := bson.D{{"_id", book["id"].(primitive.ObjectID)}}
+
+	fmt.Printf("Here is the ID to update book: ")
+	fmt.Printf(book["id"].(string))
+
+	filter := bson.D{{"_id", book["id"].(string)}}
 
 	new_book := BookStore{}
+	id, _ := primitive.ObjectIDFromHex(book["id"].(string))
+
 	_, ok := book["isbn"]
 	if ok {
 		new_book = BookStore{
-			ID:         book["id"].(primitive.ObjectID),
+			ID:         id,
 			BookName:   book["name"].(string),
 			BookAuthor: book["author"].(string),
 			BookPages:  int(book["pages"].(float64)),
@@ -234,7 +238,7 @@ func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]in
 		}
 	} else {
 		new_book = BookStore{
-			ID:         book["id"].(primitive.ObjectID),
+			ID:         id,
 			BookName:   book["name"].(string),
 			BookAuthor: book["author"].(string),
 			BookPages:  int(book["pages"].(float64)),
@@ -244,6 +248,7 @@ func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]in
 
 	var result bson.M
 	if err := coll.FindOneAndReplace(context.TODO(), filter, new_book).Decode(&result); err != nil {
+		fmt.Printf("Cannot find book to replace. Is ID parsed correctly?\n")
 		panic(err)
 	}
 
@@ -264,11 +269,15 @@ func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]in
 // }
 
 func removeBook(client *mongo.Client, coll *mongo.Collection, id string) interface{} {
+	fmt.Printf("Here is the ID to remove book: ")
+	fmt.Printf(id)
+
 	filter := bson.D{{"_id", id}}
 
 	var result bson.M
 	// check for errors in the finding
 	if err := coll.FindOneAndDelete(context.TODO(), filter).Decode(&result); err != nil {
+		fmt.Printf("Cannot find book to remove. Is ID parsed correctly?\n")
 		panic(err)
 	}
 
