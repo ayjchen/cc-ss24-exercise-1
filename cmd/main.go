@@ -220,11 +220,12 @@ func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]in
 
 	fmt.Printf("Here is the ID to update book: ")
 	fmt.Printf(book["id"].(string))
+	fmt.Println()
 
-	filter := bson.D{{"_id", book["id"].(string)}}
+	id, _ := primitive.ObjectIDFromHex(book["id"].(string))
+	filter := bson.D{{"_id", id}}
 
 	new_book := BookStore{}
-	id, _ := primitive.ObjectIDFromHex(book["id"].(string))
 
 	_, ok := book["isbn"]
 	if ok {
@@ -271,8 +272,10 @@ func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]in
 func removeBook(client *mongo.Client, coll *mongo.Collection, id string) interface{} {
 	fmt.Printf("Here is the ID to remove book: ")
 	fmt.Printf(id)
+	fmt.Println()
 
-	filter := bson.D{{"_id", id}}
+	id_obj, _ := primitive.ObjectIDFromHex(id)
+	filter := bson.D{{"_id", id_obj}}
 
 	var result bson.M
 	// check for errors in the finding
