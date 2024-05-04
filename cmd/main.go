@@ -177,18 +177,30 @@ func findAllBooks(coll *mongo.Collection) []map[string]interface{} {
 func addBook(client *mongo.Client, coll *mongo.Collection, book map[string]interface{}) {
 	// cursor, err := coll.Find(context.TODO(), book)
 
-	new_book := BookStore{
-		BookName:   book["name"].(string),
-		BookAuthor: book["author"].(string),
-		BookPages:  book["pages"].(int),
-		BookYear:   book["year"].(int),
-		BookISBN:   book["isbn"].(string),
+	new_book := BookStore{}
+	_, ok := book["isbn"]
+	if ok {
+		new_book = BookStore{
+			BookName:   book["name"].(string),
+			BookAuthor: book["author"].(string),
+			BookPages:  book["pages"].(int),
+			BookYear:   book["year"].(int),
+			BookISBN:   book["isbn"].(string),
+		}
+	} else {
+		new_book = BookStore{
+			BookName:   book["name"].(string),
+			BookAuthor: book["author"].(string),
+			BookPages:  book["pages"].(int),
+			BookYear:   book["year"].(int),
+		}
 	}
 
 	result, err := coll.InsertOne(context.TODO(), new_book)
 	if err != nil {
 		panic(err)
 	} else {
+		fmt.Printf("New book successfully added, here is it below:\n")
 		fmt.Printf("%+v\n", result)
 	}
 }
@@ -299,6 +311,7 @@ func main() {
 
 		var body map[string]interface{}
 		err := json.NewDecoder(c.Request().Body).Decode(&body)
+		fmt.Printf("Here is the actual request body:\n")
 		fmt.Printf("%+v\n", body)
 		if err != nil {
 			log.Fatal(err)
