@@ -166,10 +166,25 @@ func findAllBooks(coll *mongo.Collection) []map[string]interface{} {
 			"BookAuthor": res.BookAuthor,
 			"BookISBN":   res.BookISBN,
 			"BookPages":  res.BookPages,
+			"BookYear":   res.BookYear,
 		})
 	}
 
 	return ret
+}
+
+// func findBook(all_books []map[string]interface{}, book map[string]interface{}) map[string]interface{} {
+// 	for _, b := range all_books {
+// 		for key, val := range b {
+// 			if ()
+// 		}
+// 	}
+
+// 	return ret
+// }
+
+func bookExists() bool {
+	return false
 }
 
 func main() {
@@ -213,21 +228,22 @@ func main() {
 	// starting with /, which usually serve webpages. For our RESTful endpoints,
 	// we prefix the route with /api to indicate more information or resources
 	// are available under such route.
+	books := findAllBooks(coll)
+
 	e.GET("/", func(c echo.Context) error {
 		return c.Render(200, "index", nil)
 	})
 
 	e.GET("/books", func(c echo.Context) error {
-		books := findAllBooks(coll)
 		return c.Render(200, "book-table", books)
 	})
 
 	e.GET("/authors", func(c echo.Context) error {
-		return c.NoContent(http.StatusNoContent)
+		return c.Render(200, "author-table", books)
 	})
 
 	e.GET("/years", func(c echo.Context) error {
-		return c.NoContent(http.StatusNoContent)
+		return c.Render(200, "year-table", books)
 	})
 
 	e.GET("/search", func(c echo.Context) error {
@@ -239,7 +255,14 @@ func main() {
 	})
 
 	e.GET("/api/books", func(c echo.Context) error {
-		books := findAllBooks(coll)
+		return c.JSON(http.StatusOK, books)
+		// return c.Response().Header().Write()
+	})
+
+	e.POST("/api/books", func(c echo.Context) error {
+		if bookExists() {
+			return c.JSON(304, books)
+		}
 		return c.JSON(http.StatusOK, books)
 	})
 
