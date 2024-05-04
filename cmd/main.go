@@ -183,16 +183,16 @@ func addBook(client *mongo.Client, coll *mongo.Collection, book map[string]inter
 		new_book = BookStore{
 			BookName:   book["name"].(string),
 			BookAuthor: book["author"].(string),
-			BookPages:  book["pages"].(int),
-			BookYear:   book["year"].(int),
+			BookPages:  int(book["pages"].(float64)),
+			BookYear:   int(book["year"].(float64)),
 			BookISBN:   book["isbn"].(string),
 		}
 	} else {
 		new_book = BookStore{
 			BookName:   book["name"].(string),
 			BookAuthor: book["author"].(string),
-			BookPages:  book["pages"].(int),
-			BookYear:   book["year"].(int),
+			BookPages:  int(book["pages"].(float64)),
+			BookYear:   int(book["year"].(float64)),
 		}
 	}
 
