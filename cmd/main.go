@@ -415,9 +415,9 @@ func main() {
 		return c.JSON(http.StatusOK, books)
 	})
 
-	e.DELETE("/api/books/:id", func(c echo.Context) error {
+	e.DELETE("/api/books/{id}", func(c echo.Context) error {
 		books := findAllBooks(coll)
-		removeBook(client, coll, c.Request().PathValue(":id"))
+		removeBook(client, coll, c.Request().PathValue("id"))
 
 		return c.JSON(http.StatusOK, books)
 	})
