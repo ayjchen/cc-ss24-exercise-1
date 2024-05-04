@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -173,6 +174,25 @@ func findAllBooks(coll *mongo.Collection) []map[string]interface{} {
 	return ret
 }
 
+func addBook(client *mongo.Client, coll *mongo.Collection, book map[string]interface{}) {
+	// cursor, err := coll.Find(context.TODO(), book)
+
+	new_book := BookStore{
+		BookName:   book["name"].(string),
+		BookAuthor: book["author"].(string),
+		BookPages:  book["pages"].(int),
+		BookYear:   book["year"].(int),
+		BookISBN:   book["isbn"].(string),
+	}
+
+	result, err := coll.InsertOne(context.TODO(), new_book)
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Printf("%+v\n", result)
+	}
+}
+
 // func findBook(all_books []map[string]interface{}, book map[string]interface{}) map[string]interface{} {
 // 	for _, b := range all_books {
 // 		for key, val := range b {
@@ -181,6 +201,10 @@ func findAllBooks(coll *mongo.Collection) []map[string]interface{} {
 // 	}
 
 // 	return ret
+// }
+
+// func findBook(coll mongo.Collection, book interface{}) interface{} {
+// 	filter := bson.D{{"name", book[name]}}
 // }
 
 func bookExists() bool {
@@ -196,7 +220,7 @@ func main() {
 	defer cancel()
 
 	// TODO: make sure to pass the proper username, password, and port
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://mongodb:testmongo@localhost:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://0.0.0.0:27017"))
 
 	// This is another way to specify the call of a function. You can define inline
 	// functions (or anonymous functions, similar to the behavior in Python)
@@ -263,7 +287,34 @@ func main() {
 		if bookExists() {
 			return c.JSON(304, books)
 		}
+
+		// request := c.Request()
+		// req_bytes, err := io.ReadAll(request.Body)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+
+		// temp, err := json.Marshal(req_bytes)
+		// new_book := BookStore{temp}
+
+		var body map[string]interface{}
+		err := json.NewDecoder(c.Request().Body).Decode(&body)
+		fmt.Printf("%+v\n", body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		addBook(client, coll, body)
+
 		return c.JSON(http.StatusOK, books)
+	})
+
+	// e.UPDATE("/api/books", func(c echo.Context) error {
+	// 	return nil
+	// })
+
+	e.DELETE("/api/books", func(c echo.Context) error {
+		return nil
 	})
 
 	e.Logger.Fatal(e.Start(":3030"))
