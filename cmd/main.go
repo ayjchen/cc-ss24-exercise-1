@@ -217,13 +217,15 @@ func addBook(client *mongo.Client, coll *mongo.Collection, book map[string]inter
 	}
 }
 
-func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]interface{}) {
+func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]interface{}) interface{} {
 	// cursor, err := coll.Find(context.TODO(), book)
+	filter := bson.D{{"_id", book["id"].(primitive.ObjectID)}}
 
 	new_book := BookStore{}
 	_, ok := book["isbn"]
 	if ok {
 		new_book = BookStore{
+			ID:         book["id"].(primitive.ObjectID),
 			BookName:   book["name"].(string),
 			BookAuthor: book["author"].(string),
 			BookPages:  int(book["pages"].(float64)),
@@ -232,6 +234,7 @@ func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]in
 		}
 	} else {
 		new_book = BookStore{
+			ID:         book["id"].(primitive.ObjectID),
 			BookName:   book["name"].(string),
 			BookAuthor: book["author"].(string),
 			BookPages:  int(book["pages"].(float64)),
@@ -239,13 +242,15 @@ func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]in
 		}
 	}
 
-	result, err := coll.InsertOne(context.TODO(), new_book)
-	if err != nil {
+	var result bson.M
+	if err := coll.FindOneAndReplace(context.TODO(), filter, new_book).Decode(&result); err != nil {
 		panic(err)
-	} else {
-		fmt.Printf("New book successfully added, here is it below:\n")
-		fmt.Printf("%+v\n", result)
 	}
+
+	fmt.Printf("New book successfully added, here is it below:\n")
+	fmt.Printf("%+v\n", result)
+
+	return result
 }
 
 // func findBook(all_books []map[string]interface{}, book map[string]interface{}) map[string]interface{} {
@@ -393,7 +398,19 @@ func main() {
 	})
 
 	e.PUT("/api/books", func(c echo.Context) error {
-		return nil
+		books := findAllBooks(coll)
+
+		var body map[string]interface{}
+		err := json.NewDecoder(c.Request().Body).Decode(&body)
+		fmt.Printf("Here is the actual request body (for an UPDATE):\n")
+		fmt.Printf("%+v\n", body)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		updateBook(client, coll, body)
+
+		return c.JSON(http.StatusOK, books)
 	})
 
 	e.DELETE("/api/books/:id", func(c echo.Context) error {
