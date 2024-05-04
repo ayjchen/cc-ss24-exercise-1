@@ -264,21 +264,23 @@ func main() {
 	// starting with /, which usually serve webpages. For our RESTful endpoints,
 	// we prefix the route with /api to indicate more information or resources
 	// are available under such route.
-	books := findAllBooks(coll)
 
 	e.GET("/", func(c echo.Context) error {
 		return c.Render(200, "index", nil)
 	})
 
 	e.GET("/books", func(c echo.Context) error {
+		books := findAllBooks(coll)
 		return c.Render(200, "book-table", books)
 	})
 
 	e.GET("/authors", func(c echo.Context) error {
+		books := findAllBooks(coll)
 		return c.Render(200, "author-table", books)
 	})
 
 	e.GET("/years", func(c echo.Context) error {
+		books := findAllBooks(coll)
 		return c.Render(200, "year-table", books)
 	})
 
@@ -291,11 +293,13 @@ func main() {
 	})
 
 	e.GET("/api/books", func(c echo.Context) error {
+		books := findAllBooks(coll)
 		return c.JSON(http.StatusOK, books)
 		// return c.Response().Header().Write()
 	})
 
 	e.POST("/api/books", func(c echo.Context) error {
+		books := findAllBooks(coll)
 		if bookExists() {
 			return c.JSON(304, books)
 		}
