@@ -217,6 +217,37 @@ func addBook(client *mongo.Client, coll *mongo.Collection, book map[string]inter
 	}
 }
 
+func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]interface{}) {
+	// cursor, err := coll.Find(context.TODO(), book)
+
+	new_book := BookStore{}
+	_, ok := book["isbn"]
+	if ok {
+		new_book = BookStore{
+			BookName:   book["name"].(string),
+			BookAuthor: book["author"].(string),
+			BookPages:  int(book["pages"].(float64)),
+			BookYear:   int(book["year"].(float64)),
+			BookISBN:   book["isbn"].(string),
+		}
+	} else {
+		new_book = BookStore{
+			BookName:   book["name"].(string),
+			BookAuthor: book["author"].(string),
+			BookPages:  int(book["pages"].(float64)),
+			BookYear:   int(book["year"].(float64)),
+		}
+	}
+
+	result, err := coll.InsertOne(context.TODO(), new_book)
+	if err != nil {
+		panic(err)
+	} else {
+		fmt.Printf("New book successfully added, here is it below:\n")
+		fmt.Printf("%+v\n", result)
+	}
+}
+
 // func findBook(all_books []map[string]interface{}, book map[string]interface{}) map[string]interface{} {
 // 	for _, b := range all_books {
 // 		for key, val := range b {
@@ -227,9 +258,32 @@ func addBook(client *mongo.Client, coll *mongo.Collection, book map[string]inter
 // 	return ret
 // }
 
-// func findBook(coll mongo.Collection, book interface{}) interface{} {
-// 	filter := bson.D{{"name", book[name]}}
-// }
+func removeBook(client *mongo.Client, coll *mongo.Collection, id string) interface{} {
+	filter := bson.D{{"_id", id}}
+
+	var result bson.M
+	// check for errors in the finding
+	if err := coll.FindOneAndDelete(context.TODO(), filter).Decode(&result); err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Book successfully removed, removed book:\n")
+	fmt.Printf("%+v\n", result)
+
+	return result
+}
+
+func findBook(client *mongo.Client, coll *mongo.Collection, book map[string]interface{}) interface{} {
+	filter := bson.D{{"_id", book["id"].(string)}}
+
+	var result bson.M
+	// check for errors in the finding
+	if err := coll.FindOne(context.TODO(), filter).Decode(&result); err != nil {
+		panic(err)
+	}
+
+	return nil
+}
 
 func bookExists() bool {
 	return false
@@ -338,12 +392,15 @@ func main() {
 		return c.JSON(http.StatusOK, books)
 	})
 
-	// e.UPDATE("/api/books", func(c echo.Context) error {
-	// 	return nil
-	// })
-
-	e.DELETE("/api/books", func(c echo.Context) error {
+	e.PUT("/api/books", func(c echo.Context) error {
 		return nil
+	})
+
+	e.DELETE("/api/books/:id", func(c echo.Context) error {
+		books := findAllBooks(coll)
+		removeBook(client, coll, c.Request().PathValue("id"))
+
+		return c.JSON(http.StatusOK, books)
 	})
 
 	e.Logger.Fatal(e.Start(":3030"))
