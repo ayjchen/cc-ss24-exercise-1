@@ -159,15 +159,27 @@ func findAllBooks(coll *mongo.Collection) []map[string]interface{} {
 		panic(err)
 	}
 
+	// var ret []map[string]interface{}
+	// for _, res := range results {
+	// 	ret = append(ret, map[string]interface{}{
+	// 		"ID":         res.ID.Hex(),
+	// 		"BookName":   res.BookName,
+	// 		"BookAuthor": res.BookAuthor,
+	// 		"BookISBN":   res.BookISBN,
+	// 		"BookPages":  res.BookPages,
+	// 		"BookYear":   res.BookYear,
+	// 	})
+	// }
+
 	var ret []map[string]interface{}
 	for _, res := range results {
 		ret = append(ret, map[string]interface{}{
-			"ID":         res.ID.Hex(),
-			"BookName":   res.BookName,
-			"BookAuthor": res.BookAuthor,
-			"BookISBN":   res.BookISBN,
-			"BookPages":  res.BookPages,
-			"BookYear":   res.BookYear,
+			"id":     res.ID.Hex(),
+			"name":   res.BookName,
+			"author": res.BookAuthor,
+			"isbn":   res.BookISBN,
+			"pages":  res.BookPages,
+			"year":   res.BookYear,
 		})
 	}
 
