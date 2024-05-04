@@ -253,7 +253,7 @@ func updateBook(client *mongo.Client, coll *mongo.Collection, book map[string]in
 		panic(err)
 	}
 
-	fmt.Printf("New book successfully added, here is it below:\n")
+	fmt.Printf("Book successfully updated, updated book:\n")
 	fmt.Printf("%+v\n", result)
 
 	return result
@@ -378,7 +378,6 @@ func main() {
 	e.GET("/api/books", func(c echo.Context) error {
 		books := findAllBooks(coll)
 		return c.JSON(http.StatusOK, books)
-		// return c.Response().Header().Write()
 	})
 
 	e.POST("/api/books", func(c echo.Context) error {
@@ -386,15 +385,6 @@ func main() {
 		if bookExists() {
 			return c.JSON(304, books)
 		}
-
-		// request := c.Request()
-		// req_bytes, err := io.ReadAll(request.Body)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-
-		// temp, err := json.Marshal(req_bytes)
-		// new_book := BookStore{temp}
 
 		var body map[string]interface{}
 		err := json.NewDecoder(c.Request().Body).Decode(&body)
@@ -427,7 +417,7 @@ func main() {
 
 	e.DELETE("/api/books/:id", func(c echo.Context) error {
 		books := findAllBooks(coll)
-		removeBook(client, coll, c.Request().PathValue("id"))
+		removeBook(client, coll, c.Request().PathValue(":id"))
 
 		return c.JSON(http.StatusOK, books)
 	})
